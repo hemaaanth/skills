@@ -14,7 +14,7 @@ This adds all available skills from this repository to your Claude Code environm
 
 | Skill | Description |
 |-------|-------------|
-| **monarch** | Monarch Money personal finance API: check balances, transactions, budgets, cashflow, recurring expenses, and net worth |
+| **monarch** | Monarch Money personal finance API: check balances, transactions, budgets, cashflow, recurring expenses, and net worth. Code forked from https://github.com/hammem/monarchmoney |
 
 ## Contributing
 
