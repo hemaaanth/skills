@@ -1,0 +1,22 @@
+{
+  "name": "hemaaanth-skills",
+  "owner": {
+    "name": "Hemanth Soni",
+    "email": "skills@soni.im"
+  },
+  "metadata": {
+    "description": "Curated and custom-built skills for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "monarch",
+      "description": "Personal finance skill for Monarch Money balances, transactions, budgets, and net worth.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./monarch"
+      ]
+    }
+  ]
+}
