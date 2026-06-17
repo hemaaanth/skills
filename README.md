@@ -4,11 +4,28 @@ A collection of curated, vetted, and custom-built skills for [Claude Code](https
 
 ## Install
 
+For Claude Code, install the repository directly:
+
 ```bash
 /install-skill hemaaanth/skills
 ```
 
-This adds all available skills from this repository to your Claude Code environment.
+You can also use the open `skills` CLI via `npx`:
+
+```bash
+npx skills add hemaaanth/skills
+```
+
+In this command, `npx skills` runs the npm package named `skills`, and
+`add hemaaanth/skills` tells that CLI to install skills from the GitHub
+repository at `https://github.com/hemaaanth/skills`. Use `--list` to preview
+what the CLI will find without installing anything:
+
+```bash
+npx skills add hemaaanth/skills --list
+```
+
+This adds all available skills from this repository to your agent environment.
 
 ## Available Skills
 
