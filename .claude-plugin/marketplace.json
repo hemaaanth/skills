@@ -5,8 +5,8 @@
     "email": "skills@soni.im"
   },
   "metadata": {
-    "description": "Curated and custom-built skills for Claude Code",
-    "version": "1.0.0"
+    "description": "Curated and custom-built skills for Claude Code and compatible coding agents",
+    "version": "1.1.0"
   },
   "plugins": [
     {
@@ -16,6 +16,15 @@
       "strict": false,
       "skills": [
         "./monarch"
+      ]
+    },
+    {
+      "name": "akiflow",
+      "description": "Akiflow private API skill for tasks, planning/scheduling, projects, tags, calendar reads, time slots, Meeting Assistant recordings/action items, and meeting briefs.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./akiflow"
       ]
     }
   ]
