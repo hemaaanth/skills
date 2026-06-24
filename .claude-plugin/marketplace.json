@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "monarch",
-      "description": "Personal finance skill for Monarch Money balances, transactions, budgets, and net worth.",
+      "description": "Personal finance skill for Monarch Money balances, transactions, budgets, cashflow, recurring expenses, and net worth.",
       "source": "./",
       "strict": false,
       "skills": [
