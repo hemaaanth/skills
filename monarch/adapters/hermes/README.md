@@ -12,7 +12,9 @@ cp monarch/adapters/hermes/monarch_tools.py ~/.hermes/hermes-agent/tools/monarch
 
 Then add a `monarch` toolset entry to your Hermes installation (`toolsets.py` and `hermes_cli/tools_config.py`), enable it, and restart Hermes/gateway so the new tool schema is loaded.
 
-The adapter imports the same `monarch_client` package used by `scripts/monarch.py`. If you copy only the adapter file, make sure `monarch/` is on `PYTHONPATH` or install/symlink the skill directory where Hermes can import it.
+The adapter imports the same `monarch_client` package used by `scripts/monarch.py`. If you copy only the adapter file, make sure `monarch/` is on `PYTHONPATH` or install/symlink the skill directory where Hermes can import it. Install `requirements.txt` into the Hermes runtime venv too, because native Hermes tools run inside Hermes' Python process, not the skill's `.venv`.
+
+The adapter's `check_requirements()` accepts either legacy token auth or the current web-cookie session files created by `scripts/monarch.py login`.
 
 ## Tool surface
 

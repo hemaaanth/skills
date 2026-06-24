@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from monarch_client.session import load_token, normalize_token, save_token, session_file
+from http.cookiejar import Cookie, MozillaCookieJar
+
+from monarch_client.session import has_auth, load_token, load_web_session, normalize_token, save_token, save_web_session, session_file, web_session_file
 
 
 class SessionTests(unittest.TestCase):
@@ -38,6 +40,58 @@ class SessionTests(unittest.TestCase):
                     os.environ.pop("MONARCH_SESSION_FILE", None)
                 else:
                     os.environ["MONARCH_SESSION_FILE"] = old
+
+    def test_save_and_load_web_session_with_cookie_jar(self):
+        with TemporaryDirectory() as tmp:
+            meta = Path(tmp) / "web_session.json"
+            cookies = Path(tmp) / "cookies.txt"
+            old_meta = os.environ.get("MONARCH_WEB_SESSION_FILE")
+            old_cookies = os.environ.get("MONARCH_COOKIE_FILE")
+            os.environ["MONARCH_WEB_SESSION_FILE"] = str(meta)
+            os.environ["MONARCH_COOKIE_FILE"] = str(cookies)
+            try:
+                jar = MozillaCookieJar()
+                jar.set_cookie(Cookie(
+                    version=0,
+                    name="csrftoken",
+                    value="csrf-secret",
+                    port=None,
+                    port_specified=False,
+                    domain="api.monarch.com",
+                    domain_specified=True,
+                    domain_initial_dot=False,
+                    path="/",
+                    path_specified=True,
+                    secure=True,
+                    expires=None,
+                    discard=False,
+                    comment=None,
+                    comment_url=None,
+                    rest={},
+                    rfc2109=False,
+                ))
+                saved = save_web_session(jar, device_uuid="device-1", client_version="test-version")
+                self.assertEqual(saved, meta)
+                loaded = load_web_session(meta)
+                self.assertIsNotNone(loaded)
+                assert loaded is not None
+                self.assertEqual(loaded["device_uuid"], "device-1")
+                self.assertEqual(loaded["client_version"], "test-version")
+                self.assertEqual(loaded["csrf_token"], "csrf-secret")
+                self.assertIn("csrftoken=csrf-secret", loaded["cookie_header"])
+                self.assertTrue(has_auth())
+                if os.name == "posix":
+                    self.assertEqual(stat.S_IMODE(meta.stat().st_mode), 0o600)
+                    self.assertEqual(stat.S_IMODE(cookies.stat().st_mode), 0o600)
+            finally:
+                if old_meta is None:
+                    os.environ.pop("MONARCH_WEB_SESSION_FILE", None)
+                else:
+                    os.environ["MONARCH_WEB_SESSION_FILE"] = old_meta
+                if old_cookies is None:
+                    os.environ.pop("MONARCH_COOKIE_FILE", None)
+                else:
+                    os.environ["MONARCH_COOKIE_FILE"] = old_cookies
 
 
 if __name__ == "__main__":

@@ -18,7 +18,8 @@ from typing import Any
 # directory if `monarch_client` is not otherwise importable.
 import os
 
-_skill_dir = os.getenv("MONARCH_SKILL_DIR")
+_default_skill_dir = Path(__file__).resolve().parents[2]
+_skill_dir = os.getenv("MONARCH_SKILL_DIR") or (str(_default_skill_dir) if (_default_skill_dir / "monarch_client").exists() else None)
 if _skill_dir and _skill_dir not in sys.path:
     sys.path.insert(0, _skill_dir)
 
@@ -80,8 +81,8 @@ async def _refresh(confirm: bool = False, wait: bool = False) -> dict[str, Any]:
 
 def check_requirements() -> bool:
     try:
-        from monarch_client.session import load_token
-        return bool(load_token())
+        from monarch_client.session import has_auth
+        return bool(has_auth())
     except Exception:
         return False
 

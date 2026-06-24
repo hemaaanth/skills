@@ -1,0 +1,21 @@
+# Python/local development artifacts
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets / local runtime state
+.env
+.env.*
+cache.json
+*.log
+
+# OS/editor noise
+.DS_Store
+.vscode/
+.idea/

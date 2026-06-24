@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import http.cookiejar
+import json
+import urllib.error
+import urllib.request
+import uuid
 from typing import Any
 
 from .errors import AuthenticationRequiredError, MfaRequiredError, MissingAuthError, MissingDependencyError
-from .session import load_token, save_token
+from .session import DEFAULT_CLIENT_VERSION, load_token, load_web_session, save_token, save_web_session
 
 API_BASE_URL = "https://api.monarch.com"
 
@@ -30,16 +35,40 @@ class MonarchClient:
     def _client(self, require_auth: bool = True):
         MonarchMoney, _, _ = _load_monarchmoney()
         if self._mm is None:
-            self._mm = MonarchMoney()
+            self._mm = MonarchMoney(timeout=30)
             token = self._token or load_token()
             if token:
                 self._mm.set_token(token)
                 # Current monarchmoney versions require this private header update
                 # after set_token() for GraphQL calls to include Authorization.
                 self._mm._headers["Authorization"] = f"Token {token}"
-            elif require_auth:
-                raise MissingAuthError("Run `monarch.py login --email <email> --interactive` or `monarch.py set-token <token>` first")
+            else:
+                web_session = load_web_session()
+                if web_session:
+                    self._apply_web_session_headers(self._mm, web_session)
+                elif require_auth:
+                    raise MissingAuthError("Run `monarch.py login --email <email> --interactive` or `monarch.py set-token <token>` first")
         return self._mm
+
+    def _apply_web_session_headers(self, mm: Any, web_session: dict[str, Any]) -> None:
+        """Configure the upstream client to use Monarch's current web cookie auth."""
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "*/*",
+            "Origin": "https://app.monarch.com",
+            "Referer": "https://app.monarch.com/",
+            "User-Agent": "Mozilla/5.0",
+            "Client-Platform": "web",
+            "Device-UUID": web_session["device_uuid"],
+            "Monarch-Client": "monarch-core-web-app-graphql",
+            "Monarch-Client-Version": web_session["client_version"],
+            "apollographql-client-name": "web",
+            "apollographql-client-version": web_session["client_version"],
+            "Cookie": web_session["cookie_header"],
+        }
+        if web_session.get("csrf_token"):
+            headers["X-CSRFToken"] = web_session["csrf_token"]
+        mm._headers = headers
 
     async def set_token(self, token: str, verify: bool = True) -> dict[str, Any]:
         save_token(token)
@@ -50,22 +79,90 @@ class MonarchClient:
             return {"account_count": len(data.get("accounts", []))}
         return {"account_count": None}
 
-    async def login(self, email: str, password: str, *, mfa_code: str | None = None, mfa_secret_key: str | None = None) -> str:
-        MonarchMoney, RequireMFAException, _ = _load_monarchmoney()
-        mm = MonarchMoney()
+    async def login(self, email: str, password: str, *, mfa_code: str | None = None, mfa_secret_key: str | None = None, email_otp: str | None = None) -> str:
+        """Log in with Monarch's current web auth flow and persist cookies.
+
+        Monarch's web app now authenticates GraphQL with session cookies/CSRF
+        rather than only a standalone ``Authorization: Token`` header. ``mfa_code``
+        is accepted for backward-compatible CLI usage and is submitted as a TOTP
+        code; ``email_otp`` handles the current email-code challenge.
+        """
+        return self._web_login(email=email, password=password, totp=mfa_code, email_otp=email_otp, mfa_secret_key=mfa_secret_key)
+
+    def _web_login(self, *, email: str, password: str, totp: str | None = None, email_otp: str | None = None, mfa_secret_key: str | None = None) -> str:
+        if mfa_secret_key and not totp:
+            try:
+                import oathtool  # type: ignore
+                totp = oathtool.generate_otp(mfa_secret_key)
+            except Exception as exc:  # pragma: no cover - optional helper
+                raise AuthenticationRequiredError("Could not generate TOTP from MFA secret key") from exc
+
+        device_uuid = str(uuid.uuid4())
+        client_version = DEFAULT_CLIENT_VERSION
+        jar = http.cookiejar.MozillaCookieJar()
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        payload: dict[str, Any] = {
+            "username": email,
+            "password": password,
+            "web_stay_signed_in": True,
+            "supports_mfa": True,
+            "supports_email_otp": True,
+            "supports_recaptcha": True,
+        }
+        if totp:
+            payload["totp"] = totp
+        if email_otp:
+            payload["email_otp"] = email_otp
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Origin": "https://app.monarch.com",
+            "Referer": "https://app.monarch.com/",
+            "User-Agent": "Mozilla/5.0",
+            "Client-Platform": "web",
+            "Device-UUID": device_uuid,
+            "Monarch-Client": "monarch-core-web-app",
+            "Monarch-Client-Version": client_version,
+        }
+        req = urllib.request.Request(
+            f"{API_BASE_URL}/auth/web/login/",
+            data=json.dumps(payload).encode(),
+            headers=headers,
+        )
         try:
-            await mm.login(email=email, password=password, use_saved_session=False, save_session=False, mfa_secret_key=mfa_secret_key)
-        except RequireMFAException as exc:
-            if not mfa_code:
-                raise MfaRequiredError("MFA required; rerun with --mfa-code or --interactive") from exc
-            await mm.multi_factor_authenticate(email, password, mfa_code)
-        token = mm.token
-        if not token:
-            raise AuthenticationRequiredError("Login did not return a token")
-        save_token(token)
-        self._token = token
-        self._mm = mm
-        return token
+            resp = opener.open(req, timeout=30)
+            raw_body = resp.read().decode("utf-8", errors="replace")
+            status = resp.status
+        except urllib.error.HTTPError as exc:
+            raw_body = exc.read().decode("utf-8", errors="replace")
+            status = exc.code
+        try:
+            body = json.loads(raw_body) if raw_body else {}
+        except json.JSONDecodeError:
+            body = {"detail": raw_body[:200]}
+
+        if status != 200:
+            error_code = body.get("error_code") if isinstance(body, dict) else None
+            detail = body.get("detail") if isinstance(body, dict) else None
+            if error_code == "EMAIL_OTP_REQUIRED":
+                raise MfaRequiredError("Email OTP required; rerun with --email-otp or --interactive")
+            if error_code == "MFA_REQUIRED":
+                raise MfaRequiredError("MFA required; rerun with --mfa-code or --interactive")
+            raise AuthenticationRequiredError(f"Web login failed with HTTP {status}: {detail or error_code or 'unknown error'}")
+
+        save_web_session(jar, device_uuid=device_uuid, client_version=client_version, metadata=body if isinstance(body, dict) else None)
+        # Some web-login responses still include a token. Save it as a legacy
+        # fallback when present, but prefer cookie auth for the current web API.
+        if isinstance(body, dict) and body.get("token"):
+            try:
+                save_token(body["token"])
+                self._token = body["token"]
+            except Exception:
+                self._token = None
+        else:
+            self._token = None
+        self._mm = None
+        return "web_cookie"
 
     async def status(self) -> dict[str, Any]:
         data = await self.get_accounts()

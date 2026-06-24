@@ -20,24 +20,32 @@ python3 -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Authenticate with email/password/MFA:
+Authenticate with Monarch's current web login flow:
 
 ```bash
 python scripts/monarch.py login --email you@example.com --interactive
 ```
 
-Or save a browser token from the Monarch web app:
+If Monarch asks for an email one-time code, rerun with the code or stay in `--interactive` and paste it when prompted:
 
-1. Go to [app.monarch.com](https://app.monarch.com) and log in.
-2. Open DevTools → Network.
-3. Click a request to `api.monarch.com`.
-4. Copy the `Authorization` header value that starts with `Token `.
+```bash
+python scripts/monarch.py login --email you@example.com --interactive --email-otp 123456
+```
+
+The current web app authenticates GraphQL with session cookies plus CSRF/browser client headers, not always with a visible `Authorization` header. The CLI stores web-cookie auth in:
+
+- `~/.monarchmoney/web_session.json` — non-secret metadata such as device UUID/client version
+- `~/.monarchmoney/cookies.txt` — secret session cookies
+
+Both are written with restrictive permissions where supported. Do not print or paste cookies, tokens, passwords, or OTP codes into logs.
+
+Legacy browser/API tokens can still be saved if available:
 
 ```bash
 python scripts/monarch.py set-token "Token YOUR_TOKEN_HERE"
 ```
 
-Session token is saved to `~/.monarchmoney/session.json` with restrictive permissions where supported. Do not print or paste this token into logs.
+Legacy tokens are saved to `~/.monarchmoney/session.json`.
 
 ## Read-only commands
 
@@ -142,6 +150,34 @@ python scripts/monarch.py transactions --limit 100 | jq 'sort_by(-.amount) | .[0
 The skill is portable without adapters. Optional native integrations can live in `adapters/<agent>/`.
 
 A Hermes example adapter is included at `adapters/hermes/`. It exposes read tools plus confirmed account refresh and uses the same `monarch_client` package.
+
+## Reconnect and account-health operations
+
+This skill includes reusable operational scripts for connected-account repair and monitoring. Keep these in the skill repo so every compatible agent can use the same behavior instead of relying on profile-local copies.
+
+```bash
+# Generate an on-demand MX/Finicity reconnect URL for a broken credential.
+python scripts/generate_monarch_reconnect_link.py "Institution name"
+python scripts/generate_monarch_reconnect_link.py --credential-id CREDENTIAL_UUID
+
+# Quiet no-agent/watchdog account-health check; prints only when action is needed.
+HERMES_HOME=/path/to/hermes-profile python scripts/monarch_account_health_watch.py
+```
+
+The watcher groups accounts by `credential.id`, stays silent when healthy, and avoids generating short-lived reconnect URLs during scheduled runs. See `references/monarch-reconnect-and-health-watch.md` before changing reconnect/cron behavior.
+
+## Recovery / missing-data investigation notes
+
+Monarch exposes more recovery primitives in its private GraphQL/web bundle than the portable CLI currently wraps:
+
+- `forceRefreshAccount(input: {accountId, source})` / `forceRefreshAllAccounts(input: {source})` request a provider sync. `forceRefreshAllAccounts` returns a `forceRefreshOperationId`; poll `forceRefreshOperation(id)` for per-account `newTransactionCount`, `updatedTransactionCount`, `errorMessage`, and `errorDetail`. The older upstream `monarchmoney` package still uses deprecated `forceRefreshAccounts(accountIds)` and only checks `hasSyncInProgress`.
+- `createMxCredentials` is documented in Monarch's schema as: "create credentials, perform the initial sync, and call extend history." This is evidence that MX supports an internal historical extension during initial connection, but no standalone user-facing `extendHistory`/`backfill` mutation has been found.
+- `syncCredentialAfterReconnect(input: {credentialId})` clears `updateRequired` after repair/reconnect and triggers account sync to detect account changes.
+- `resetAndSyncAccount(accountId)` appears in the web employee/debug menu as "Reset & Sync Account" and starts a sync after resetting the account. Treat it as dangerous/internal: do not run without explicit user confirmation and a fresh backup/export.
+- `deleteSyncedTransactions(beforeDate, expectedAffectedTransactionsCount)` and `deleteSyncedSnapshots(beforeDate, expectedAffectedSnapshotsCount)` are destructive cleanup/reset primitives, not recovery. Do not use them for missing-data recovery unless intentionally rebuilding history from exports.
+- `transferAccountDataAsync` can move transactions/snapshots between accounts and is useful for duplicate/reconnected-account repair, not for fetching missing upstream transactions.
+
+When investigating missing transactions, group by `credential.id` / institution / data provider, not just visible account name. One upstream connection can back multiple accounts, so a Wealthsimple/MX gap can affect Chequing, credit card, USD cash, and investment/cash accounts together.
 
 ## Troubleshooting
 

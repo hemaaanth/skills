@@ -29,7 +29,7 @@ from monarch_client.formatters import (
     format_tags,
     format_transactions,
 )
-from monarch_client.session import save_token, session_file
+from monarch_client.session import save_token, session_file, web_session_file
 
 HIGH_RISK_COMMANDS = {
     "create-transaction",
@@ -88,16 +88,18 @@ async def handle_login(args: argparse.Namespace) -> Any:
     if args.interactive or not password:
         password = getpass.getpass("Monarch password: ")
     mfa_code = args.mfa_code
+    email_otp = args.email_otp
     client = MonarchClient()
     try:
-        await client.login(args.email, password, mfa_code=mfa_code, mfa_secret_key=args.mfa_secret_key)
+        await client.login(args.email, password, mfa_code=mfa_code, mfa_secret_key=args.mfa_secret_key, email_otp=email_otp)
     except MonarchClientError as exc:
         if exc.error_type == "mfa_required" and args.interactive:
-            mfa_code = input("MFA code: ").strip()
-            await client.login(args.email, password, mfa_code=mfa_code, mfa_secret_key=args.mfa_secret_key)
+            prompt = "Email OTP or MFA code: "
+            code = input(prompt).strip()
+            await client.login(args.email, password, email_otp=code, mfa_code=mfa_code, mfa_secret_key=args.mfa_secret_key)
         else:
             raise
-    return format_ok("Login succeeded; session token saved", session_file=str(session_file()))
+    return format_ok("Login succeeded; web session saved", session_file=str(web_session_file()))
 
 
 async def handle_set_token(args: argparse.Namespace) -> Any:
@@ -233,6 +235,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--password", help="Password (prefer --interactive or --password-stdin)")
     p.add_argument("--password-stdin", action="store_true", help="Read password from stdin")
     p.add_argument("--mfa-code", help="MFA code if required")
+    p.add_argument("--email-otp", help="Email OTP code if required by Monarch web login")
     p.add_argument("--mfa-secret-key", help="TOTP secret key for generated MFA")
     p.add_argument("--interactive", action="store_true", help="Prompt for password and MFA code without echoing password")
     p.set_defaults(handler=handle_login)
