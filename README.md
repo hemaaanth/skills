@@ -32,6 +32,7 @@ This adds all available skills from this repository to your agent environment.
 | Skill | Description |
 |-------|-------------|
 | **monarch** | Monarch Money personal finance API: check balances, transactions, budgets, cashflow, recurring expenses, and net worth. Code forked from https://github.com/hammem/monarchmoney |
+| **akiflow** | Akiflow private API skill: tasks, projects, tags, calendar reads, time slots, Meeting Assistant recordings/action items, and meeting briefs via a portable JSON CLI. |
 
 ## Contributing
 
