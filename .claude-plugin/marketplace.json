@@ -26,6 +26,15 @@
       "skills": [
         "./akiflow"
       ]
+    },
+    {
+      "name": "dokploy-deployment",
+      "description": "Safely inspect and manage Dokploy deployment status, queues, logs, and explicitly confirmed cleanup operations.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./dokploy"
+      ]
     }
   ]
 }
