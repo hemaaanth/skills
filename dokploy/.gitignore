@@ -1,0 +1,4 @@
+# Credential environments and local test state
+.env
+.env.*
+*.log
