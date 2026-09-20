@@ -34,6 +34,7 @@ This adds all available skills from this repository to your agent environment.
 | **monarch** | Monarch Money personal finance API: check balances, transactions, budgets, cashflow, recurring expenses, and net worth. Code forked from https://github.com/hammem/monarchmoney |
 | **akiflow** | Akiflow private API skill: tasks, projects, tags, calendar reads, time slots, Meeting Assistant recordings/action items, and meeting briefs via a portable JSON CLI. |
 | **dokploy-deployment** | Safely inspect Dokploy deployment status, queues, and logs, with explicitly confirmed process kills and deployment-record removal. |
+| **linear-cli** | JSON-first Linear issue, project, cycle, milestone, document, and comment workflows restricted to Goldsky-owned repositories. |
 
 ## Contributing
 
