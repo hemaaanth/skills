@@ -1,0 +1,47 @@
+{
+  "product": "turbo",
+  "display_name": "Turbo (Mirror Pipelines)",
+  "last_updated": "2026-03-01",
+  "source": "https://docs.goldsky.com/pricing/summary",
+  "billing": "metered hourly, charged monthly (730 hours/month)",
+  "tiers": {
+    "free": {
+      "compute": { "included_hours": 750, "note": "1 small pipeline = 1 worker" },
+      "bandwidth": { "included_records": 1000000, "note": "1M record writes" }
+    },
+    "scale": {
+      "compute": {
+        "rate_per_hour": 0.10,
+        "monthly_estimate": 73.00,
+        "note": "Per worker hour beyond free tier"
+      },
+      "bandwidth": {
+        "tiers": [
+          { "range": "1M–100M", "rate_per_100k": 1.00 },
+          { "range": "100M+", "rate_per_100k": 0.10 }
+        ]
+      }
+    },
+    "enterprise": {
+      "pricing_model": "custom",
+      "note": "Volume discounts, committed use, dedicated support"
+    }
+  },
+  "resource_sizes": {
+    "small": { "workers": 1 },
+    "medium": { "workers": 4 },
+    "large": { "workers": 10 },
+    "xlarge": { "workers": 20 },
+    "xxlarge": { "workers": 40 }
+  },
+  "estimation": {
+    "tool": "tools/dataset-sizes",
+    "ratios_msgs_per_mb": {
+      "blocks": 723.95,
+      "logs": 1455.26,
+      "receipt_transactions": 388.28,
+      "traces": 1089.94,
+      "transactions": 500.0
+    }
+  }
+}

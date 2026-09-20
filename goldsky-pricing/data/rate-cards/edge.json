@@ -1,0 +1,17 @@
+{
+  "product": "edge",
+  "display_name": "Edge RPC",
+  "last_updated": "2026-03-01",
+  "source": "https://docs.goldsky.com/pricing/summary",
+  "billing": "per request",
+  "tiers": {
+    "scale": {
+      "rate_per_million_requests": 5.00,
+      "note": "All RPC methods priced equally — no surcharges for eth_getLogs, trace_*, etc."
+    },
+    "enterprise": {
+      "volume_discounts": "Available for 500M+ requests/month",
+      "pricing_model": "custom"
+    }
+  }
+}

@@ -35,6 +35,8 @@ This adds all available skills from this repository to your agent environment.
 | **akiflow** | Akiflow private API skill: tasks, projects, tags, calendar reads, time slots, Meeting Assistant recordings/action items, and meeting briefs via a portable JSON CLI. |
 | **dokploy-deployment** | Safely inspect Dokploy deployment status, queues, and logs, with explicitly confirmed process kills and deployment-record removal. |
 | **linear-cli** | JSON-first Linear issue, project, cycle, milestone, document, and comment workflows restricted to Goldsky-owned repositories. |
+| **goldsky-metabase** | Manage internal Goldsky Metabase dashboards and ClickHouse-backed questions. |
+| **goldsky-pricing** | Look up Goldsky product pricing and prepare usage or enterprise estimates. |
 
 ## Contributing
 

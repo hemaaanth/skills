@@ -1,0 +1,31 @@
+{
+  "product": "chain_enablement",
+  "display_name": "Chain Enablement",
+  "last_updated": "2026-03-01",
+  "description": "Chains pay for enabling their network on Goldsky infrastructure. This covers the base cost of keeping the network online regardless of individual user consumption.",
+  "products": {
+    "subgraphs": {
+      "base_price_annual": 36000,
+      "minimum_price_annual": 20000,
+      "max_discount_percent": 44.4,
+      "note": "Base $36K/yr, can discount to $20K/yr floor. Chain also pays for ALL entity storage consumed by their entire ecosystem (all sponsored/approved teams).",
+      "chain_pays_for": [
+        "Base enablement fee",
+        "All entity storage for sponsored/approved ecosystem teams"
+      ],
+      "storage_rates": "Same tiered rates as scale plan (100K–10M: $0.0053/hr, 10M+: $0.0014/hr)"
+    },
+    "mirror": {
+      "base_price_annual": 36000,
+      "minimum_price_annual": 20000,
+      "max_discount_percent": 44.4,
+      "note": "Base $36K/yr, can discount to $20K/yr floor. Chain pays for full unfiltered database storage of all data on the network — not filtered by what individual users consume.",
+      "chain_pays_for": [
+        "Base enablement fee",
+        "Full unfiltered database storage for the network (all data types: blocks, logs, traces, transactions, etc.)"
+      ],
+      "storage_note": "Use the dataset-sizes tool to get current total storage for a network. Individual users may filter (e.g., only logs), but the chain pays for everything."
+    }
+  },
+  "key_distinction": "Individual teams pay usage-based pricing for what they consume (filtered data). Chains pay for the full unfiltered storage/compute cost of keeping the network available on Goldsky, regardless of individual consumption patterns."
+}

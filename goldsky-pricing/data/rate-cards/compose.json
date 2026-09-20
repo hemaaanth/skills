@@ -1,0 +1,13 @@
+{
+  "product": "compose",
+  "display_name": "Compose",
+  "last_updated": "2026-03-01",
+  "source": "https://docs.goldsky.com/pricing/summary",
+  "billing": "enterprise only",
+  "tiers": {
+    "enterprise": {
+      "pricing_model": "custom",
+      "note": "Contact Account Manager. Currently in private beta."
+    }
+  }
+}

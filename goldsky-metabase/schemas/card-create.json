@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Metabase Create Card (Saved Question)",
+  "description": "JSON Schema for POST /api/card/ request body",
+  "type": "object",
+  "required": ["name", "dataset_query", "display", "visualization_settings"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Card display name",
+      "minLength": 1
+    },
+    "description": {
+      "type": ["string", "null"],
+      "description": "Optional description"
+    },
+    "dataset_query": {
+      "type": "object",
+      "description": "The query definition",
+      "required": ["type", "native", "database"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "native",
+          "description": "Query type — use 'native' for raw SQL"
+        },
+        "native": {
+          "type": "object",
+          "required": ["query"],
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "The SQL query string"
+            },
+            "template-tags": {
+              "type": "object",
+              "description": "Template tags for parameterized queries",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "display-name": { "type": "string" },
+                  "type": {
+                    "type": "string",
+                    "enum": ["text", "number", "date", "dimension"]
+                  },
+                  "default": {}
+                }
+              }
+            }
+          }
+        },
+        "database": {
+          "type": "integer",
+          "description": "Database ID to run the query against"
+        }
+      }
+    },
+    "display": {
+      "type": "string",
+      "description": "Visualization type",
+      "enum": [
+        "scalar",
+        "table",
+        "bar",
+        "line",
+        "pie",
+        "area",
+        "row",
+        "funnel",
+        "map",
+        "scatter",
+        "waterfall",
+        "progress",
+        "gauge",
+        "number"
+      ]
+    },
+    "visualization_settings": {
+      "type": "object",
+      "description": "Display settings (axis labels, colors, formatting, etc.)",
+      "additionalProperties": true
+    },
+    "type": {
+      "type": "string",
+      "description": "Card type: 'question' for saved queries (default), 'model' for curated datasets. Replaces deprecated 'dataset' boolean.",
+      "enum": ["question", "model"],
+      "default": "question"
+    },
+    "collection_id": {
+      "type": ["integer", "null"],
+      "description": "Collection to save the card in. null = root collection"
+    }
+  },
+  "additionalProperties": false
+}
