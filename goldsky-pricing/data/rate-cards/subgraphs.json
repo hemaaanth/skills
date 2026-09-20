@@ -1,0 +1,28 @@
+{
+  "product": "subgraphs",
+  "display_name": "Subgraphs",
+  "last_updated": "2026-03-01",
+  "source": "https://docs.goldsky.com/pricing/summary",
+  "billing": "metered hourly, charged monthly",
+  "tiers": {
+    "free": {
+      "compute": { "included_workers": 3 },
+      "storage": { "included_entities": 100000 }
+    },
+    "scale": {
+      "compute": {
+        "rate_per_hour": 0.05,
+        "monthly_estimate": 36.50,
+        "note": "Per worker beyond 3 free workers"
+      },
+      "storage": [
+        { "range": "100K–10M entities", "rate_per_hour": 0.0053, "monthly_estimate": 4.00 },
+        { "range": "10M+ entities", "rate_per_hour": 0.0014, "monthly_estimate": 1.05 }
+      ]
+    },
+    "enterprise": {
+      "pricing_model": "custom",
+      "note": "Partner-sponsored subgraphs available for chain partnerships"
+    }
+  }
+}

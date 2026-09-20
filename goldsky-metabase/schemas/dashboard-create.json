@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Metabase Create Dashboard",
+  "description": "JSON Schema for POST /api/dashboard/ request body",
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Dashboard display name",
+      "minLength": 1
+    },
+    "description": {
+      "type": ["string", "null"],
+      "description": "Optional description shown below the title"
+    },
+    "collection_id": {
+      "type": ["integer", "null"],
+      "description": "Collection to place the dashboard in. null = root collection"
+    },
+    "parameters": {
+      "type": "array",
+      "description": "Dashboard filter parameters",
+      "items": {
+        "type": "object",
+        "required": ["name", "slug", "id", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Display name for the filter"
+          },
+          "slug": {
+            "type": "string",
+            "description": "URL-safe slug for the parameter"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the parameter"
+          },
+          "type": {
+            "type": "string",
+            "description": "Parameter type",
+            "enum": [
+              "date/single",
+              "date/range",
+              "date/relative",
+              "date/month-year",
+              "date/quarter-year",
+              "date/all-options",
+              "string/=",
+              "string/!=",
+              "string/contains",
+              "string/does-not-contain",
+              "string/starts-with",
+              "string/ends-with",
+              "number/=",
+              "number/!=",
+              "number/>=",
+              "number/<=",
+              "number/between",
+              "category",
+              "id",
+              "location/city",
+              "location/state",
+              "location/zip_code",
+              "location/country"
+            ]
+          },
+          "default": {
+            "description": "Default value for the parameter"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

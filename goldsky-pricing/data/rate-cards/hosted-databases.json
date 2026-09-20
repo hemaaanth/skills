@@ -1,0 +1,26 @@
+{
+  "product": "hosted_databases",
+  "display_name": "Hosted Databases",
+  "last_updated": "2026-03-01",
+  "source": "https://docs.goldsky.com/pricing/summary",
+  "billing": "metered hourly, charged monthly (720 hours/month)",
+  "tiers": {
+    "free": {
+      "storage": { "included_gb": 0.25, "note": "250 MB included" }
+    },
+    "scale": {
+      "compute": {
+        "rate_per_hour_per_vcpu": 0.16,
+        "monthly_estimate_per_vcpu": 115.00
+      },
+      "storage": {
+        "rate_per_hour_per_gb": 0.0021,
+        "monthly_estimate_per_gb": 1.50,
+        "note": "Beyond 250 MB free tier"
+      }
+    },
+    "enterprise": {
+      "pricing_model": "custom"
+    }
+  }
+}

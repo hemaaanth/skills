@@ -1,0 +1,4 @@
+interface:
+  display_name: "Linear CLI"
+  short_description: "Manage Linear from Goldsky repositories"
+  default_prompt: "Use $linear-cli to inspect or update the relevant Goldsky Linear issue."
